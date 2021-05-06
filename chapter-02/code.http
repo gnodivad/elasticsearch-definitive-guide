@@ -1,0 +1,31 @@
+@hostname = http://docker.machine
+@port = 9200
+@host = {{hostname}}:{{port}}
+@index = megacorp
+
+### Cluster health
+GET {{host}}/_cluster/health HTTP/1.1
+content-type: application/json
+
+### Create shards
+PUT {{host}}/blogs HTTP/1.1
+content-type: application/json
+
+{
+  "settings" : {
+    "number_of_shards": 3,
+    "number_of_replicas": 1
+  }
+}
+
+### Increase number of replicas
+PUT {{host}}/blogs/_settings HTTP/1.1
+content-type: application/json
+
+{
+  "number_of_replicas": 2
+}
+
+### Shards information
+GET {{host}}/_cat/shards HTTP/1.1
+content-type: application/json
