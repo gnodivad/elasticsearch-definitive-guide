@@ -100,3 +100,23 @@ should replaced with
 
 *References:*
 - https://www.elastic.co/guide/en/elasticsearch/reference/current/text.html#fielddata-mapping-param
+
+### Optimistic Concurrency Control
+> internal versioning can not be used for optimistic concurrency control
+
+`version` cannot used for optimistic concurrency control anymore. To achieve that, we need to use `if_primary_term` and `if_seq_no`. The primary term `_primary_term` and sequence number `_seq_no` are uniquely identify a change. Primary term will be increase when a primary is promoted and sequence numbers will be increase and change when a operation is issued.
+
+*References:*
+- https://www.elastic.co/blog/elasticsearch-sequence-ids-6-0
+- https://www.elastic.co/guide/en/elasticsearch/reference/6.8/breaking-changes-6.7.html#_deprecated_usage_of_literal_internal_literal_versioning_for_optimistic_concurrency_control
+- https://www.elastic.co/guide/en/elasticsearch/reference/current/optimistic-concurrency-control.html
+
+
+### File scripts
+> unknown field [params]
+
+File scripts have been removed. We need to use stored scripts for that.
+
+*References:*
+- https://www.elastic.co/guide/en/elasticsearch/reference/6.0/breaking_60_scripting_changes.html#_file_scripts_removed
+- https://www.elastic.co/guide/en/elasticsearch/reference/6.2/modules-scripting-using.html#modules-scripting-stored-scripts

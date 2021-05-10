@@ -1,0 +1,167 @@
+@hostname = http://docker.machine
+@port = 9200
+@host = {{hostname}}:{{port}}
+@index = website
+@type = blog
+
+### Store document using own ID
+PUT {{host}}/{{index}}/{{type}}/123 HTTP/1.1
+content-type: application/json
+
+{
+  "title": "My first blog entry",
+  "text": "Still trying this out...",
+  "date": "2014/01/01"
+}
+
+### Store document using autogenerating ID
+POST {{host}}/{{index}}/{{type}} HTTP/1.1
+content-type: application/json
+
+{
+  "title": "My second blog entry",
+  "text": "Still trying this out...",
+  "date": "2014/01/01"
+}
+
+### Retrieve document
+GET {{host}}/{{index}}/{{type}}/123 HTTP/1.1
+content-type: application/json
+
+### Retrieve nonexistence document
+GET {{host}}/{{index}}/{{type}}/124 HTTP/1.1
+content-type: application/json
+
+### Retrieve part of document
+GET {{host}}/{{index}}/{{type}}/123?_source=title,text HTTP/1.1
+content-type: application/json
+
+### Create a new blog post
+PUT {{host}}/{{index}}/{{type}}/1/_create HTTP/1.1
+content-type: application/json
+
+{
+  "title": "My first blog entry",
+  "text": "Still trying this out..."
+}
+
+### Retrieve the blog post
+GET {{host}}/{{index}}/{{type}}/1 HTTP/1.1
+content-type: application/json
+
+### Optimistic concurrency control
+PUT {{host}}/{{index}}/{{type}}/1?if_primary_term=1&if_seq_no=0 HTTP/1.1
+content-type: application/json
+
+{
+  "title": "My first blog entry",
+  "text": "Starting to get the hang of this..."
+}
+
+### Create a new blog post with external version
+PUT {{host}}/{{index}}/{{type}}/2?version=5&version_type=external HTTP/1.1
+content-type: application/json
+
+{
+  "title": "My first external blog entry",
+  "text": "Starting to get the hang of this..."
+}
+
+### Update document with external version
+PUT {{host}}/{{index}}/{{type}}/2?version=12&version_type=external HTTP/1.1
+content-type: application/json
+
+{
+  "title": "My first external blog entry",
+  "text": "This is a piece of cake..."
+}
+
+### Partial update document
+POST {{host}}/{{index}}/{{type}}/1/_update HTTP/1.1
+content-type: application/json
+
+{
+  "doc": {
+    "tags": ["testing"],
+    "views": 0
+  }
+}
+
+### Partial update document using script
+POST {{host}}/{{index}}/{{type}}/1/_update HTTP/1.1
+content-type: application/json
+
+{
+  "script": "ctx._source.views+=1"
+}
+
+### Add stored script
+POST {{host}}/_scripts/add-new-tag HTTP/1.1
+content-type: application/json
+
+{
+  "script": {
+    "lang": "painless",
+    "source": "ctx._source.tags.add(params.new_tag)"
+  }
+}
+
+### Retrieve stored script
+GET {{host}}/_scripts/add-new-tag HTTP/1.1
+content-type: application/json
+
+### Partial update document using script with params
+POST {{host}}/{{index}}/{{type}}/1/_update HTTP/1.1
+content-type: application/json
+
+{
+  "script": {
+    "id": "add-new-tag",
+    "params": {
+      "new_tag": "search"
+    }
+  }
+}
+
+### Retrieving multiple documents
+GET {{host}}/_mget HTTP/1.1
+content-type: application/json
+
+{
+  "docs": [
+    {
+      "_index": "website",
+      "_type": "blog",
+      "_id": 2
+    },
+    {
+      "_index": "website",
+      "_type": "pageviews",
+      "_id": 1,
+      "_source": "views"
+    }
+  ]
+}
+
+### Retrieving multiple documents on same index and different type
+GET {{host}}/{{index}}/{{type}}/_mget HTTP/1.1
+content-type: application/json
+
+{
+  "docs": [{ "_id": 2 }, { "_type": "pageviews", "_id": 1 }]
+}
+
+### Retrieving multiple documents on same index and type
+GET {{host}}/{{index}}/{{type}}/_mget HTTP/1.1
+content-type: application/json
+
+{
+  "ids": ["2", "1"]
+}
+
+
+
+
+
+
+
