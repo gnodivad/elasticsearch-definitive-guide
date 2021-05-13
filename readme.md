@@ -120,3 +120,10 @@ File scripts have been removed. We need to use stored scripts for that.
 *References:*
 - https://www.elastic.co/guide/en/elasticsearch/reference/6.0/breaking_60_scripting_changes.html#_file_scripts_removed
 - https://www.elastic.co/guide/en/elasticsearch/reference/6.2/modules-scripting-using.html#modules-scripting-stored-scripts
+
+### The removal of the string type
+
+Elasticsearch provided two ways to search for strings. You either can search for full match value(`not_analyzed`) or full-text search(`analyzed`). The `analyzed` string will replaced with `text` type and `not_analyzed` string will replaced with `keyword` type.
+
+*References:*
+- https://www.elastic.co/blog/strings-are-dead-long-live-strings
