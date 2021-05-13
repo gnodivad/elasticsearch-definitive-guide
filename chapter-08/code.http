@@ -1,0 +1,53 @@
+@hostname = http://docker.machine
+@port = 9200
+@host = {{hostname}}:{{port}}
+
+### Sorting by Field Values
+GET {{host}}/_search HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "bool": {
+      "filter": { "term": { "user_id": 1 } }
+    }
+  },
+  "sort": { "date": { "order": "desc" } }
+}
+
+### Multilevel Sorting
+GET {{host}}/_search HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "bool": {
+      "must": { "match": { "tweet": "manage text search" } },
+      "filter": { "term": { "user_id": 2 } }
+    }
+  },
+  "sort": [{ "date": { "order": "desc" } }, { "_score": { "order": "desc" } }]
+}
+
+### Multilevel Sorting on Text and keyword field
+GET {{host}}/_search HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "match": {
+      "tweet": "elasticsearch"
+    }
+  },
+  "sort": "tweet.keyword"
+}
+
+### Understanding the Score
+GET {{host}}/_search?explain=true&format=yaml HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": { "match": { "tweet": "honeymoon" } }
+}
+
+
