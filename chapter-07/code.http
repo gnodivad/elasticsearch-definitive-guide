@@ -1,0 +1,39 @@
+@hostname = http://docker.machine
+@port = 9200
+@host = {{hostname}}:{{port}}
+
+### Validating Incorrect Queries
+GET {{host}}/gb-tweet/_validate/query HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "tweet": {
+      "match": "really powerful"
+    }
+  }
+}
+
+### Validating Incorrect Queries with explain
+GET {{host}}/gb-tweet/_validate/query?explain HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "tweet": {
+      "match": "really powerful"
+    }
+  }
+}
+
+### Validating Incorrect Queries with explain
+GET {{host}}/_validate/query?explain HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "match": {
+      "tweet": "really powerful"
+    }
+  }
+}
