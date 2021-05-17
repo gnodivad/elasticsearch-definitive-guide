@@ -127,3 +127,10 @@ Elasticsearch provided two ways to search for strings. You either can search for
 
 *References:*
 - https://www.elastic.co/blog/strings-are-dead-long-live-strings
+
+### _all field is deprecated
+
+`_all` field is a special field that concatenate all the values in `_source` into one long string, so that we can search the values without knowing which field. However, it is too consume CPU and disk space.
+
+*References:*
+- https://www.elastic.co/guide/en/elasticsearch/reference/6.8/mapping-all-field.html

@@ -1,0 +1,145 @@
+@hostname = http://docker.machine
+@port = 9200
+@host = {{hostname}}:{{port}}
+
+### Create index with primary shard only
+PUT {{host}}/my_temp_index HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0
+  }
+}
+
+### Update existing index
+PUT {{host}}/my_temp_index/_settings HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "number_of_replicas": 1
+}
+
+### Create new analyzer
+PUT {{host}}/spanish_docs HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "settings": {
+    "analysis": {
+      "analyzer": {
+        "es_std": { "type": "standard", "stopwords": "_spanish_" }
+      }
+    }
+  }
+}
+
+### Use new analyzer with analyze API
+GET {{host}}/spanish_docs/_analyze HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "analyzer" : "es_std",
+  "text" : ["El veloz zorro marrón"]
+}
+
+### Create custom analyzer
+PUT {{host}}/my_index HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "settings": {
+    "analysis": {
+      "char_filter": {
+        "&_to_and": {
+          "type": "mapping",
+          "mappings": ["& => and"]
+        }
+      },
+      "filter": {
+        "my_stopwords": {
+          "type": "stop",
+          "stopwords": ["the", "a"]
+        }
+      },
+      "analyzer": {
+        "my_analyzer": {
+          "type": "custom",
+          "char_filter": ["html_strip", "&_to_and"],
+          "tokenizer": "standard",
+          "filter": ["lowercase", "my_stopwords"]
+        }
+      }
+    }
+  }
+}
+
+### Use custom analyzer with analyze API
+GET {{host}}/my_index/_analyze HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "analyzer" : "my_analyzer",
+  "text" : ["<p>The quick & brown fox</p>"]
+}
+
+### Use strict mapping
+PUT {{host}}/my_index HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "mappings": {
+    "dynamic": "strict",
+    "properties": {
+      "title": { "type": "text" },
+      "stash": {
+        "type": "object",
+        "dynamic": true
+      }
+    }
+  }
+}
+
+### Add record to strict mapping index
+PUT {{host}}/my_index/_doc/1 HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "title": "This doc adds a new field",
+  "new_field": "Fail!",
+  "stash": { "new_field": "Success!" }
+}
+
+### Delete index
+DELETE {{host}}/my_index HTTP/1.1
+content-type: application/x-ndjson
+
+### Create alias index
+PUT {{host}}/my_index_v1 HTTP/1.1
+content-type: application/x-ndjson
+
+### Create alias index
+PUT {{host}}/my_index_v1/_alias/my_index HTTP/1.1
+content-type: application/x-ndjson
+
+### Check which index the alias points to
+GET {{host}}/*/_alias/my_index HTTP/1.1
+content-type: application/x-ndjson
+
+### Check which alias point to the index
+GET {{host}}/my_index_v1/_alias/* HTTP/1.1
+content-type: application/x-ndjson
+
+### Modify _aliases
+POST {{host}}/_aliases HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "actions": [
+    {
+      "remove": { "index": "*", "alias": "my_index" }
+    }
+  ]
+}
+
