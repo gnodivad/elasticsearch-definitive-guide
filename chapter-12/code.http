@@ -1,0 +1,208 @@
+@hostname = http://docker.machine
+@port = 9200
+@host = {{hostname}}:{{port}}
+@index = products
+
+### Bulk create products
+POST {{host}}/{{index}}/_bulk HTTP/1.1
+content-type: application/x-ndjson
+
+{ "index": { "_id": 1 }}
+{ "price" : 10, "productID" : "XHDK-A-1293-#fJ3" }
+{ "index": { "_id": 2 }}
+{ "price" : 20, "productID" : "KDKE-B-9947-#kL5" }
+{ "index": { "_id": 3 }}
+{ "price" : 30, "productID" : "JODL-X-1937-#pV7" }
+{ "index": { "_id": 4 }}
+{ "price" : 30, "productID" : "QQPX-R-3956-#aD8" }
+
+### Search product with specific price
+GET {{host}}/{{index}}/_search HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "term": {
+      "price": 20
+    }
+  }
+}
+
+### Search product with specific productID
+GET {{host}}/{{index}}/_search HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "term": {
+      "productID": "XHDK-A-1293-#fJ3"
+    }
+  }
+}
+
+### Analyze productID field
+GET {{host}}/{{index}}/_analyze HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "text" : ["XHDK-A-1293-#fJ3"]
+}
+
+### Delete products index
+DELETE {{host}}/{{index}} HTTP/1.1
+content-type: application/x-ndjson
+
+### Create products index with productID as text field
+PUT {{host}}/{{index}}
+content-type: application/x-ndjson
+
+{
+  "mappings": {
+    "properties": {
+      "productID": {
+        "type": "keyword",
+        "index": "true"
+      }
+    }
+  }
+}
+
+### Bulk create products with new mapping
+POST {{host}}/{{index}}/_bulk HTTP/1.1
+content-type: application/x-ndjson
+
+{ "index": { "_id": 1 }}
+{ "price" : 10, "productID" : "XHDK-A-1293-#fJ3" }
+{ "index": { "_id": 2 }}
+{ "price" : 20, "productID" : "KDKE-B-9947-#kL5" }
+{ "index": { "_id": 3 }}
+{ "price" : 30, "productID" : "JODL-X-1937-#pV7" }
+{ "index": { "_id": 4 }}
+{ "price" : 30, "productID" : "QQPX-R-3956-#aD8" }
+
+### Get products index mapping
+GET {{host}}/{{index}}/_mapping HTTP/1.1
+content-type: application/x-ndjson
+
+### Search product with specific productID
+GET {{host}}/{{index}}/_search HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "term": {
+      "productID": "XHDK-A-1293-#fJ3"
+    }
+  }
+}
+
+### Search product with compound query DSL
+GET {{host}}/{{index}}/_search HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "bool": {
+      "should": [
+        { "term": { "price": 20 } },
+        { "term": { "productID": "XHDK-A-1293-#fJ3" } }
+      ],
+      "must_not": {
+        "term": { "price": "30" }
+      }
+    }
+  }
+}
+
+### Search product with nested compound query DSL
+GET {{host}}/{{index}}/_search HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "bool": {
+      "should": [
+        { "term": { "productID": "KDKE-B-9947-#kL5" } },
+        {
+          "bool": {
+            "must": [
+              { "term": { "productID": "JODL-X-1937-#pV7" } },
+              { "term": { "price": "30" } }
+            ]
+          }
+        }
+      ]
+    }
+  }
+}
+
+### Search product with multiple exact values
+GET {{host}}/{{index}}/_search HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "terms": {
+      "price": [20, 30]
+    }
+  }
+}
+
+### Search product with range
+GET {{host}}/{{index}}/_search HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "range": {
+      "price": {
+        "gte": 20,
+        "lt": 40
+      }
+    }
+  }
+}
+
+### Bulk create posts
+POST {{host}}/posts/_bulk HTTP/1.1
+content-type: application/x-ndjson
+
+{ "index": { "_id": "1" }}
+{ "tags" : ["search"] }
+{ "index": { "_id": "2" }}
+{ "tags" : ["search", "open_source"] }
+{ "index": { "_id": "3" }}
+{ "other_field" : "some data" }
+{ "index": { "_id": "4" }}
+{ "tags" : null }
+{ "index": { "_id": "5" }}
+{ "tags" : ["search", null] }
+
+
+### Search posts with tag is set
+GET {{host}}/posts/_search HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "exists": {
+      "field": "tags"
+    }
+  }
+}
+
+### Search posts with tag is not set
+GET {{host}}/posts/_search HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "bool": {
+      "must_not": {
+        "missing": {
+          "field": "tags"
+        }
+      }
+    }
+  }
+}
