@@ -1,0 +1,163 @@
+@hostname = http://docker.machine
+@port = 9200
+@host = {{hostname}}:{{port}}
+@index = my_index
+
+### Delete index my_index
+DELETE {{host}}/{{index}} HTTP/1.1
+content-type: application/x-ndjson
+
+### Create index my_index with 1 shard
+PUT {{host}}/{{index}} HTTP/1.1
+content-type: application/x-ndjson
+
+{ "settings": { "number_of_shards": 1 } }
+
+### Bulk create my_index
+POST {{host}}/{{index}}/_bulk HTTP/1.1
+content-type: application/x-ndjson
+
+{ "index": { "_id": 1 }}
+{ "title": "The quick brown fox" }
+{ "index": { "_id": 2 }}
+{ "title": "The quick brown fox jumps over the lazy dog" }
+{ "index": { "_id": 3 }}
+{ "title": "The quick brown fox jumps over the quick dog" }
+{ "index": { "_id": 4 }}
+{ "title": "Brown fox brown dog" }
+
+### Search with match query
+GET {{host}}/{{index}}/_search HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "match": {
+      "title": "QUICK!"
+    }
+  }
+}
+
+
+### Search with match query and two words
+GET {{host}}/{{index}}/_search HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "match": {
+      "title": "BROWN DOG!"
+    }
+  }
+}
+
+### Search with match query and two exist words
+GET {{host}}/{{index}}/_search HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "match": {
+      "title": {
+        "query": "BROWN DOG!",
+        "operator": "and"
+      }
+    }
+  }
+}
+
+### Search with match query with minimum_should_match
+GET {{host}}/{{index}}/_search HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "match": {
+      "title": {
+        "query": "quick brown dog",
+        "minimum_should_match": "75%"
+      }
+    }
+  }
+}
+
+### Search with bool
+GET {{host}}/{{index}}/_search HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "bool": {
+      "must": { "match": { "title": "quick" } },
+      "must_not": { "match": { "title": "lazy" } },
+      "should": [
+        { "match": { "title": "brown" } },
+        { "match": { "title": "dog" } }
+      ]
+    }
+  }
+}
+
+### Search with bool (minimum_should_match)
+GET {{host}}/{{index}}/_search HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "bool": {
+      "should": [
+        { "match": { "title": "brown" } },
+        { "match": { "title": "fox" } },
+        { "match": { "title": "dog" } }
+      ],
+      "minimum_should_match": 2
+    }
+  }
+}
+
+### Add a new field
+PUT {{host}}/{{index}}/_mapping HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "properties": {
+    "english_title": {
+      "type": "text",
+      "analyzer": "english"
+    }
+  }
+}
+
+### Analyze text field with standard analyzer
+GET {{host}}/{{index}}/_analyze HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "field" : "title",
+  "text" : ["Foxes"]
+}
+
+### Analyze text field with english analyzer
+GET {{host}}/{{index}}/_analyze HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "field" : "english_title",
+  "text" : ["Foxes"]
+}
+
+### Explain an query with two different analyzer field
+GET {{host}}/{{index}}/_validate/query?explain HTTP/1.1
+content-type: application/x-ndjson
+
+{
+  "query": {
+    "bool": {
+      "should": [
+        { "match": { "title": "Foxes" } },
+        { "match": { "english_title": "Foxes" } }
+      ]
+    }
+  }
+}
+
